@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+// Function to calculate the modular multiplicative inverse
+int modInverse(int a, int m) 
+{
+    a = a % m;
+    for (int x = 1; x < m; x++) 
+    {
+        if ((a * x) % m == 1)
+        {
+            return x;
+        }
+    }
+    return -1;
+}
+
+// Function to calculate the determinant of a 3x3 matrix
+int determinant(int matrix[3][3]) {
+    return (matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1])
+          - matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0])
+          + matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0])) % 26;
+}
+
+// Function to find the inverse of a 3x3 matrix
+void matrixInverse(int matrix[3][3], int inverse[3][3]) 
+{
+    int det = determinant(matrix);
+    int det_inv = modInverse(det, 26);
+    if (det_inv == -1) 
+    {
+        printf("Inverse does not exist!\n");
+        return;
+    }
+
+    // Adjugate matrix
+    inverse[0][0] = (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) % 26;
+    inverse[0][1] = (matrix[0][2] * matrix[2][1] - matrix[0][1] * matrix[2][2]) % 26;
+    inverse[0][2] = (matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1]) % 26;
+
+    inverse[1][0] = (matrix[1][2] * matrix[2][0] - matrix[1][0] * matrix[2][2]) % 26;
+    inverse[1][1] = (matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0]) % 26;
+    inverse[1][2] = (matrix[0][2] * matrix[1][0] - matrix[0][0] * matrix[1][2]) % 26;
+
+    inverse[2][0] = (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]) % 26;
+    inverse[2][1] = (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1]) % 26;
+    inverse[2][2] = (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]) % 26;
+
+    // Multiply by determinant's modular inverse and adjust to positive range
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            inverse[i][j] = (inverse[i][j] * det_inv) % 26;
+            if (inverse[i][j] < 0) {
+                inverse[i][j] += 26;
+            }
+        }
+    }
+}
+
+// Function to encrypt plaintext using a 3x3 Hill cipher key matrix
+void hillEncrypt(char plaintext[], char ciphertext[], int key[3][3]) {
+    int len = strlen(plaintext);
+    for (int i = 0; i < len; i += 3) {
+        int x1 = plaintext[i] - 'A';
+        int x2 = plaintext[i + 1] - 'A';
+        int x3 = plaintext[i + 2] - 'A';
+        
+        ciphertext[i] = ((key[0][0] * x1 + key[0][1] * x2 + key[0][2] * x3) % 26) + 'A';
+        ciphertext[i + 1] = ((key[1][0] * x1 + key[1][1] * x2 + key[1][2] * x3) % 26) + 'A';
+        ciphertext[i + 2] = ((key[2][0] * x1 + key[2][1] * x2 + key[2][2] * x3) % 26) + 'A';
+    }
+    ciphertext[len] = '\0';
+}
+
+// Function to decrypt ciphertext using a 3x3 Hill cipher key matrix
+void hillDecrypt(char ciphertext[], char plaintext[], int key[3][3]) {
+    int inverse[3][3];
+    matrixInverse(key, inverse);
+    int len = strlen(ciphertext);
+    for (int i = 0; i < len; i += 3) {
+        int y1 = ciphertext[i] - 'A';
+        int y2 = ciphertext[i + 1] - 'A';
+        int y3 = ciphertext[i + 2] - 'A';
+        
+        plaintext[i] = ((inverse[0][0] * y1 + inverse[0][1] * y2 + inverse[0][2] * y3) % 26) + 'A';
+        plaintext[i + 1] = ((inverse[1][0] * y1 + inverse[1][1] * y2 + inverse[1][2] * y3) % 26) + 'A';
+        plaintext[i + 2] = ((inverse[2][0] * y1 + inverse[2][1] * y2 + inverse[2][2] * y3) % 26) + 'A';
+    }
+    plaintext[len] = '\0';
+}
+
+int main() 
+{
+    char message[] = "ACT";
+    char plaintext[100];
+    char ciphertext[100];
+    int key[3][3] = {
+        {6, 24, 1},
+        {13, 16, 10},
+        {20, 17, 15}
+    };
+    printf("Original message: %s\n", message);
+    
+    // Pad the message to make its length a multiple of 3
+    int len = strlen(message);
+    
+    
+    hillEncrypt(message, ciphertext, key);
+    printf("Encrypted message: %s\n", ciphertext);
+    
+    hillDecrypt(ciphertext, plaintext, key);
+    printf("Decrypted message: %s\n", plaintext);
+    
+    return 0;
+}
