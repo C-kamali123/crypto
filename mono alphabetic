@@ -1,0 +1,38 @@
+#include<stdio.h>
+#include<string.h>
+#include<ctype.h>
+int main()
+{
+	char p[100];
+	char k[27];
+	char c[100];
+	printf("enter plain text:");
+	scanf("%s",&p);
+	printf("enter key:");
+	scanf("%s",&k);
+	int i;
+	if(strlen(k)!=26)
+	{
+		printf("Invalid key!");
+		return 1;
+	}
+	for(i=0;p[i]!='\0';i++)
+	{
+		char ch=p[i];
+		if(isupper(ch))
+		{
+			c[i]=k[ch-'A'];
+		}
+		else if(islower(ch))
+		{
+			c[i]=tolower(k[ch-'a']);
+		}
+		else
+		{
+			c[i]=k[ch];
+		}
+	}
+	c[i]='\0';
+	printf("Cipher text:%s",c);
+	return 0;
+}
