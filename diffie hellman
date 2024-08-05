@@ -1,0 +1,41 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+// Function to perform modular exponentiation
+int modPow(int base, int exp, int mod) {
+    int result = 1;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        base = (base * base) % mod;
+        exp /= 2;
+    }
+    return result;
+}
+int main() {
+    // Step 1: Agree on a prime number p and a base g
+    int p = 23; // A prime number
+    int g = 5;  // A primitive root modulo p
+    // Step 2: Alice chooses a private key a and computes A = g^a mod p
+    int a = 6; // Alice's private key
+    int A = modPow(g, a, p);
+    printf("Alice's public value A: %d\n", A);
+    // Step 3: Bob chooses a private key b and computes B = g^b mod p
+    int b = 15; // Bob's private key
+    int B = modPow(g, b, p);
+    printf("Bob's public value B: %d\n", B);
+    // Step 4: Alice computes the shared secret key S = B^a mod p
+    int S_Alice = modPow(B, a, p);
+    printf("Alice's shared secret key: %d\n", S_Alice);
+    // Step 5: Bob computes the shared secret key S = A^b mod p
+    int S_Bob = modPow(A, b, p);
+    printf("Bob's shared secret key: %d\n", S_Bob);
+    // Both Alice and Bob should have the same shared secret key
+    if (S_Alice == S_Bob) {
+        printf("Key exchange successful! Shared secret key: %d\n", S_Alice);
+    } else {
+        printf("Key exchange failed.\n");
+    }
+    return 0;
+}
